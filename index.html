@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width,height=device-height,minimum-scale=1.0,maximum-scale=1.0,initial-scale=1.0,user-scalable=0">
+    <title>下拉刷新</title>
+    <script src="jquery.min.js"></script>
+    <script src="iscroll-probe.js"></script>
+    <style>
+        .main{
+            position: relative;
+            width:100%;
+            height:100%;
+        }
+        .wrappper{
+            position: absolute;
+            width:100%;
+        }
+        #pull-down,#pull-up{
+            width:100%;
+            height: 30px;
+            text-align: center;
+            padding:10px 0;
+            display: none;
+        }
+        .dropdown-list li{
+            width:100%;
+            background: #ccc;
+            line-height:45px;
+            text-align: center;
+            color:#fff;
+            border-bottom: 1px solid #fff;
+            list-style: none;
+        }
+        body,.dropdown-list{
+            margin:0;
+            padding:0;
+        }
+    </style>
+</head>
+<body>
+    <div id="myScroller" class="main">
+        <div class="wrappper">
+            <div id="pull-down">
+                <img src="rolling.svg" alt="" style="width:20px;height: 20px;">
+                <span>下拉刷新</span>
+            </div>
+            <ul class="dropdown-list" id="content">
+            </ul>
+            <div id="pull-up">
+                <img src="rolling.svg" alt="" style="width:20px;height: 20px;">
+                <span>上拉刷新</span>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        var arr=[1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20];
+
+        //循环添加li标签
+        function getContents(){
+            var li="";
+            for(var i=0;i<arr.length;i++){
+                li+="<li>Item"+ arr[i] +"</li>";
+            }
+            return li;
+        }
+
+        //将li添加到ul中
+        function appContent(content){
+            var dropList=document.getElementById("content");
+            dropList.innerHTML=dropList.innerHTML+content;
+//            dropList.appendChild(content);
+        }
+
+
+        window.onload=function(){
+            // 初始化body高度
+            document.body.style.height = Math.max(document.documentElement.clientHeight, window.innerHeight || 0) + 'px';
+
+            var isPulled=false;  //定义一个拉动标记
+
+            appContent(getContents());
+
+            var myScroll=new IScroll("#myScroller",{
+                probeType: 3,
+                mouseWheel: true,
+                scrollbars: true,
+                preventDefault: false,
+                fadeScrollbars: true
+            });
+
+            //滚动条滚动时触发事件
+            myScroll.on("scroll",function(){
+                var height=this.y;
+                var bottomHeight=this.maxScrollY-height;
+
+                if(height>=60){
+                    $("#pull-down").css("display","block");
+                    isPulled=true;
+                    return;
+                }
+                if(bottomHeight>=60){
+                    $("#pull-up").css("display","block");
+                    isPulled=true;
+                    return;
+                }
+                if(height<60 && height>=0){
+                    $("#pull-down").css("display","none");
+                    return;
+                }
+                if(bottomHeight<60 && bottomHeight>=0){
+                    $("#pull-up").css("display","none");
+                    return;
+                }
+            });
+
+            //滚动结束触发事件
+            myScroll.on("scrollEnd",function(){
+                if(isPulled){  //如果达到触发条件，则执行加载
+                    isPulled=false;
+                    appContent(getContents());
+                    myScroll.refresh();
+                }
+            });
+        }
+
+    </script>
+</body>
+</html>
